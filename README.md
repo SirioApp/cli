@@ -1,87 +1,73 @@
 # backed-cli
 
-`backed-cli` is the command-line interface for the current Backed backend contracts.
+`backed-cli` is the command-line interface for the Backed protocol contracts and deployment artifacts maintained in `backend`.
 
-It is implemented in TypeScript and runs directly on Node.js 24+, with a real terminal command:
+The CLI resolves network configuration from `backend/deployments`, exposes the current protocol surfaces (`factory`, `sale`, `allowlist`), and is designed to be installed as a shell command named `backed`.
 
-```bash
-backed
-```
+## Scope
 
-No Rust toolchain is required.
-
-## Purpose
-
-The CLI is designed around the contracts and deployment artifacts inside `backend`:
+The CLI targets the current backend contract stack:
 
 - `AgentRaiseFactory`
 - `Sale`
 - `ContractAllowlist`
-- `backend/deployments/*.json`
 
-It resolves addresses and RPC configuration from the deployment files by default, while still allowing explicit overrides from flags or environment variables.
+Default configuration is loaded from:
 
-## Requirements
-
-- Node.js `>= 24`
-- npm
-- access to an RPC endpoint for the target network
-- a private key only when running write commands
+- `backend/deployments/megaeth-testnet.json`
+- `backend/deployments/megaeth-mainnet.json`
 
 ## Installation
 
-Install dependencies:
+### Requirements
+
+- Node.js `>= 24`
+- npm
+- access to a valid RPC endpoint for the selected network
+
+### Local setup
 
 ```bash
 npm install
 ```
 
-Expose the CLI globally on your machine:
+### Register the `backed` command locally
 
 ```bash
 npm link
 ```
 
-After that, the command is available as:
+After linking, the CLI is available as:
 
 ```bash
 backed --help
 ```
 
-If you do not want a global link yet, you can still run it locally:
+### Local execution without linking
 
 ```bash
 node ./src/bin/backed.ts --help
 ```
 
-## Development Scripts
+## Build and Verification
 
-Run the CLI locally:
+Project scripts:
 
 ```bash
 npm run dev -- --help
-```
-
-Run the smoke check:
-
-```bash
 npm run check
-```
-
-The current `build` script validates the executable entrypoint under Node 24:
-
-```bash
 npm run build
 ```
 
+Current behavior:
+
+- `npm run dev` executes the CLI entrypoint directly
+- `npm run check` performs a CLI smoke test
+- `npm run build` validates the executable entrypoint in the current Node runtime
+
 ## Runtime Configuration
 
-The CLI resolves deployment data from:
-
-- `backend/deployments/megaeth-testnet.json`
-- `backend/deployments/megaeth-mainnet.json`
-
-### Global Flags
+### Global flags
 
 ```bash
 backed \
@@ -92,7 +78,7 @@ backed \
   --private-key 0x...
 ```
 
-### Supported Environment Variables
+### Environment variables
 
 - `BACKED_NETWORK`
 - `BACKED_RPC_URL`
@@ -100,9 +86,7 @@ backed \
 - `BACKED_ALLOWLIST`
 - `BACKED_PRIVATE_KEY`
 
-### Network Selection
-
-Supported values:
+### Supported networks
 
 - `testnet`
 - `mainnet`
@@ -113,30 +97,30 @@ Example:
 backed --network testnet network
 ```
 
-## Command Overview
+## Command Model
 
-The CLI is split into four areas:
+The CLI exposes four top-level command groups:
 
 - `network`
 - `factory`
 - `sale`
 - `allowlist`
 
-Show the full help page:
+Full command help:
 
 ```bash
 backed --help
 ```
 
-## `network`
+## Network Commands
 
-Displays the resolved runtime configuration:
+Display the resolved runtime configuration:
 
 ```bash
 backed --network testnet network
 ```
 
-Typical output includes:
+The output includes:
 
 - selected network
 - deployment label
@@ -144,66 +128,66 @@ Typical output includes:
 - RPC URL
 - factory address
 - allowlist address
-- default collateral
+- default collateral, when defined
 - deployment file path
 
-## `factory`
+## Factory Commands
 
 Factory commands operate on `AgentRaiseFactory`.
 
-### Read Commands
+### Read operations
 
-Show high-level factory data:
+Factory summary:
 
 ```bash
 backed --network testnet factory info
 ```
 
-Show only the global configuration:
+Global configuration only:
 
 ```bash
 backed --network testnet factory global
 ```
 
-Inspect one collateral:
+Collateral inspection:
 
 ```bash
 backed --network testnet factory collateral 0x9f5A17BD53310D012544966b8e3cF7863fc8F05f
 ```
 
-List projects with pagination:
+Project pagination:
 
 ```bash
 backed --network testnet factory list --from 0 --limit 20
 ```
 
-Inspect one project:
+Single project view:
 
 ```bash
 backed --network testnet factory project 0
 ```
 
-Inspect raise snapshot:
+Project raise snapshot:
 
 ```bash
 backed --network testnet factory snapshot 0
 ```
 
-Inspect one user commitment through the factory:
+User commitment through the factory:
 
 ```bash
 backed --network testnet factory commitment 0 0x1111111111111111111111111111111111111111
 ```
 
-List project ids for an agent id:
+Projects for an agent id:
 
 ```bash
 backed --network testnet factory agent-projects 0
 ```
 
-### Write Commands
+### Write operations
 
-Create a project:
+Project creation:
 
 ```bash
 backed --network testnet --private-key 0x... factory create \
@@ -218,19 +202,19 @@ backed --network testnet --private-key 0x... factory create \
   --collateral 0x9f5A17BD53310D012544966b8e3cF7863fc8F05f
 ```
 
-Approve a project:
+Project approval:
 
 ```bash
 backed --network testnet --private-key 0x... factory approve 0
 ```
 
-Revoke a project:
+Project revocation:
 
 ```bash
 backed --network testnet --private-key 0x... factory revoke 0
 ```
 
-Update metadata:
+Metadata update:
 
 ```bash
 backed --network testnet --private-key 0x... factory update-metadata \
@@ -239,7 +223,7 @@ backed --network testnet --private-key 0x... factory update-metadata \
   --categories "defi,ai"
 ```
 
-Update operational status:
+Operational status update:
 
 ```bash
 backed --network testnet --private-key 0x... factory set-status \
@@ -248,14 +232,14 @@ backed --network testnet --private-key 0x... factory set-status \
   --status-note "Treasury live"
 ```
 
-Enable or disable a collateral:
+Collateral enable or disable:
 
 ```bash
 backed --network testnet --private-key 0x... factory set-collateral \
   0x9f5A17BD53310D012544966b8e3cF7863fc8F05f true
 ```
 
-Update global config:
+Global configuration update:
 
 ```bash
 backed --network testnet --private-key 0x... factory set-global \
@@ -269,28 +253,28 @@ backed --network testnet --private-key 0x... factory set-global \
   --max-launch-delay-minutes 1440
 ```
 
-### Factory Notes
+### Notes
 
-- `duration-minutes` and `launch-in-minutes` are converted internally to seconds
-- if `--collateral` is omitted during create, the CLI uses the default collateral from the deployment file when available
-- factory views assume the deployment ABI matches the current contracts in `backend`
+- `duration-minutes` and `launch-in-minutes` are converted to seconds internally.
+- If `--collateral` is omitted during project creation, the CLI uses the default collateral from the deployment file when available.
+- Factory read operations assume the deployment ABI is aligned with the current contracts in `backend`.
 
-## `sale`
+## Sale Commands
 
-Sale commands can target a sale in two ways:
+Sale commands accept one of the following target selectors:
 
-- direct sale address with `--sale`
-- indirect lookup through `--project-id`
+- `--sale <sale-address>`
+- `--project-id <project-id>`
 
-### Read Commands
+### Read operations
 
-Show sale status:
+Sale status:
 
 ```bash
 backed --network testnet sale status --sale 0x2222222222222222222222222222222222222222
 ```
 
-Show claimable amounts for one user:
+Claimable amounts:
 
 ```bash
 backed --network testnet sale claimable \
@@ -298,7 +282,7 @@ backed --network testnet sale claimable \
   0x1111111111111111111111111111111111111111
 ```
 
-Show refundable amount for one user:
+Refundable amount:
 
 ```bash
 backed --network testnet sale refundable \
@@ -306,7 +290,7 @@ backed --network testnet sale refundable \
   0x1111111111111111111111111111111111111111
 ```
 
-Show committed amount for one user:
+Committed amount:
 
 ```bash
 backed --network testnet sale commitment \
@@ -314,9 +298,9 @@ backed --network testnet sale commitment \
   0x1111111111111111111111111111111111111111
 ```
 
-### Write Commands
+### Write operations
 
-Approve collateral:
+Collateral approval:
 
 ```bash
 backed --network testnet --private-key 0x... sale approve-collateral \
@@ -356,9 +340,9 @@ Emergency refund:
 backed --network testnet --private-key 0x... sale emergency-refund --project-id 0
 ```
 
-### Human-Readable vs Raw Amounts
+### Amount handling
 
-These commands accept human-readable token amounts by default:
+The following commands accept human-readable token amounts by default:
 
 - `sale approve-collateral`
 - `sale commit`
@@ -369,50 +353,48 @@ Example:
 backed --network testnet --private-key 0x... sale commit --project-id 0 100.5
 ```
 
-To pass raw `uint256` values, add `--raw`:
+To pass raw `uint256` values directly:
 
 ```bash
 backed --network testnet --private-key 0x... sale commit --project-id 0 100500000 --raw
 ```
 
-### Safety Checks
+### Pre-flight checks
 
-Before sending `sale commit`, the CLI checks:
+Before a `sale commit` transaction is sent, the CLI verifies:
 
-- ERC-20 allowance
-- ERC-20 balance
+- token allowance
+- token balance
 
-If either is insufficient, the transaction is not sent.
-
-## `allowlist`
+## Allowlist Commands
 
 Allowlist commands operate on `ContractAllowlist`.
 
-### Read Commands
+### Read operations
 
-Show current admin:
+Current admin:
 
 ```bash
 backed --network testnet allowlist info
 ```
 
-Check whether a target is allowed:
+Target allow status:
 
 ```bash
 backed --network testnet allowlist is-allowed \
   0x3333333333333333333333333333333333333333
 ```
 
-### Write Commands
+### Write operations
 
-Add a target:
+Add target:
 
 ```bash
 backed --network testnet --private-key 0x... allowlist add \
   0x3333333333333333333333333333333333333333
 ```
 
-Remove a target:
+Remove target:
 
 ```bash
 backed --network testnet --private-key 0x... allowlist remove \
@@ -426,16 +408,16 @@ backed --network testnet --private-key 0x... allowlist transfer-admin \
   0x4444444444444444444444444444444444444444
 ```
 
-## Typical Workflows
+## Standard Workflows
 
-### Validate the Environment
+### Environment validation
 
 ```bash
 backed --network testnet network
 backed --network testnet factory info
 ```
 
-### Create and Approve a Raise
+### Project creation and approval
 
 ```bash
 backed --network testnet --private-key 0x... factory create \
@@ -451,53 +433,51 @@ backed --network testnet --private-key 0x... factory create \
 backed --network testnet --private-key 0x... factory approve 0
 ```
 
-### Commit to a Sale
+### Commit flow
 
 ```bash
 backed --network testnet --private-key 0x... sale approve-collateral --project-id 0 100
 backed --network testnet --private-key 0x... sale commit --project-id 0 100
 ```
 
-### Finalize and Claim
+### Finalization and claim
 
 ```bash
 backed --network testnet --private-key 0x... sale finalize --project-id 0
 backed --network testnet --private-key 0x... sale claim --project-id 0
 ```
 
-## Architecture
-
-The project is intentionally split by responsibility:
+## Internal Structure
 
 ```text
 src/
   bin/
-    backed.ts         # executable entrypoint
+    backed.ts
   cli/
-    help.ts           # help output
-    parser.ts         # argument parsing and validation
-    types.ts          # CLI command types
+    help.ts
+    parser.ts
+    types.ts
   commands/
-    allowlist.ts      # allowlist handlers
-    factory.ts        # factory handlers
-    network.ts        # network handler
-    sale.ts           # sale handlers
+    allowlist.ts
+    factory.ts
+    network.ts
+    sale.ts
   chain/
-    abis.ts           # contract ABIs
-    client.ts         # provider, wallet, contract factories
-    contracts.ts      # higher-level chain helpers
+    abis.ts
+    client.ts
+    contracts.ts
   config/
-    runtime.ts        # deployment resolution and runtime config
+    runtime.ts
   lib/
-    output.ts         # terminal printing helpers
-    utils.ts          # amount, time, tx helpers
+    output.ts
+    utils.ts
   types/
-    project.ts        # project view type
+    project.ts
 ```
 
 ## Troubleshooting
 
-### The command `backed` is not found
+### `backed` is not available in the shell
 
 Run:
 
@@ -505,18 +485,18 @@ Run:
 npm link
 ```
 
-If needed, verify your npm global bin directory is in `PATH`.
+If required, verify that the npm global bin directory is included in `PATH`.
 
-### A write command fails immediately
+### A write command fails before sending a transaction
 
-Verify one of the following is present:
+Ensure one of the following is available:
 
 - `--private-key`
 - `BACKED_PRIVATE_KEY`
 
-### A command points to the wrong deployment
+### A command resolves the wrong deployment
 
-Override one or more of:
+Override the relevant values explicitly:
 
 - `--rpc-url`
 - `--factory`
@@ -525,30 +505,30 @@ Override one or more of:
 
 ### A read call reverts
 
-This usually means the deployment JSON does not match the current contract version.
+In most cases, the deployment JSON does not match the currently deployed contract version.
 
-Fix:
+Recommended action:
 
-- align `backend/deployments/*.json` with the current deployed contracts
+- align `backend/deployments/*.json` with the active deployment
 - or pass explicit addresses through CLI flags
 
-### RPC issues
+### RPC connectivity issues
 
 Verify:
 
-- the selected network is correct
-- the RPC endpoint is reachable
-- the deployment file contains the intended RPC URL
+- network selection
+- RPC reachability
+- deployment file RPC value
 
 ## Verification
 
-Smoke check the executable:
+Smoke test:
 
 ```bash
 npm run check
 ```
 
-Inspect the resolved environment:
+Runtime resolution check:
 
 ```bash
 backed network
