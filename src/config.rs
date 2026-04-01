@@ -30,7 +30,7 @@ pub struct RuntimeConfig {
 }
 
 impl RuntimeConfig {
-    pub fn resolve(network: &crate::cli::Cli) -> Result<Self> {
+    pub fn resolve(cli: &crate::cli::Cli) -> Result<Self> {
         let cwd = std::env::current_dir().context("cannot read current directory")?;
         let root = find_repo_root(&cwd)
             .ok_or_else(|| anyhow!("cannot locate repo root containing backend/deployments"))?;
@@ -38,7 +38,7 @@ impl RuntimeConfig {
         let deployment_path = root
             .join("backend")
             .join("deployments")
-            .join(network.network.deployment_file());
+            .join(cli.network.deployment_file());
 
         let raw = fs::read_to_string(&deployment_path)
             .with_context(|| format!("cannot read {}", deployment_path.display()))?;
@@ -55,12 +55,12 @@ impl RuntimeConfig {
             .context("invalid USDM address in deployment file")?;
 
         Ok(Self {
-            network: network.network,
+            network: cli.network,
             network_label: deployment.network,
             chain_id: deployment.chain_id,
-            rpc_url: network.rpc_url.clone().unwrap_or(deployment.rpc),
-            factory: network.factory.unwrap_or(factory_from_file),
-            allowlist: network.allowlist.unwrap_or(allowlist_from_file),
+            rpc_url: cli.rpc_url.clone().unwrap_or(deployment.rpc),
+            factory: cli.factory.unwrap_or(factory_from_file),
+            allowlist: cli.allowlist.unwrap_or(allowlist_from_file),
             default_collateral,
             deployment_path,
         })

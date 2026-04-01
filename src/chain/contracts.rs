@@ -1,3 +1,4 @@
+use crate::types::ProjectView;
 use crate::util::send_and_wait;
 use anyhow::{Context, Result};
 use ethers::abi::{Abi, AbiParser};
@@ -22,7 +23,6 @@ abigen!(
         function updateProjectOperationalStatus(uint256 projectId, uint8 status, string statusNote)
         function getProjectRaiseSnapshot(uint256 projectId) view returns (bool,uint256,uint256,bool,bool,bool,uint256,uint256,address)
         function getProjectCommitment(uint256 projectId, address user) view returns (uint256)
-        event AgentRaiseCreated(uint256 indexed projectId,uint256 indexed agentId,string name,address indexed agent,address treasury,address sale,address agentExecutor,address collateral)
     ]"#
 );
 
@@ -31,10 +31,6 @@ abigen!(
     r#"[
         function startTime() view returns (uint256)
         function endTime() view returns (uint256)
-        function totalCommitted() view returns (uint256)
-        function acceptedAmount() view returns (uint256)
-        function finalized() view returns (bool)
-        function failed() view returns (bool)
         function getStatus() view returns (uint256 totalCommitted, uint256 acceptedAmount, bool finalized, bool failed)
         function getClaimable(address user) view returns (uint256 payoutUsdm, uint256 refundAmt)
         function getRefundable(address user) view returns (uint256)
@@ -74,23 +70,6 @@ abigen!(
 
 pub type SignerClient = SignerMiddleware<Provider<Http>, Wallet<k256::ecdsa::SigningKey>>;
 
-#[derive(Debug, Clone)]
-pub struct ProjectView {
-    pub agent_id: U256,
-    pub name: String,
-    pub description: String,
-    pub categories: String,
-    pub agent: Address,
-    pub treasury: Address,
-    pub sale: Address,
-    pub agent_executor: Address,
-    pub collateral: Address,
-    pub operational_status: u8,
-    pub status_note: String,
-    pub created_at: U256,
-    pub updated_at: U256,
-}
-
 type ProjectTuple = (
     U256,
     String,
@@ -114,7 +93,7 @@ pub async fn read_factory_project<M: Middleware + 'static>(
 ) -> Result<ProjectView> {
     let abi = AbiParser::default()
         .parse(&[
-            "function getProject(uint256 id) view returns (uint256,string,string,string,address,address,address,address,address,uint8,string,uint256,uint256)"
+            "function getProject(uint256 id) view returns (uint256,string,string,string,address,address,address,address,address,uint8,string,uint256,uint256)",
         ])
         .context("cannot parse getProject ABI")?;
     let contract = Contract::new(factory, abi, client);
@@ -146,9 +125,13 @@ pub async fn read_sale_collateral<M: Middleware + 'static>(
     client: Arc<M>,
     sale: Address,
 ) -> Result<Address> {
-    let abi = sale_read_abi("function COLLATERAL() view returns (address)")?;
-    let c = Contract::new(sale, abi, client);
-    c.method::<_, Address>("COLLATERAL", ())
+    let contract = Contract::new(
+        sale,
+        sale_read_abi("function COLLATERAL() view returns (address)")?,
+        client,
+    );
+    contract
+        .method::<_, Address>("COLLATERAL", ())
         .context("cannot build COLLATERAL call")?
         .call()
         .await
@@ -159,9 +142,13 @@ pub async fn read_sale_project_id<M: Middleware + 'static>(
     client: Arc<M>,
     sale: Address,
 ) -> Result<U256> {
-    let abi = sale_read_abi("function PROJECT_ID() view returns (uint256)")?;
-    let c = Contract::new(sale, abi, client);
-    c.method::<_, U256>("PROJECT_ID", ())
+    let contract = Contract::new(
+        sale,
+        sale_read_abi("function PROJECT_ID() view returns (uint256)")?,
+        client,
+    );
+    contract
+        .method::<_, U256>("PROJECT_ID", ())
         .context("cannot build PROJECT_ID call")?
         .call()
         .await
@@ -193,7 +180,7 @@ pub async fn send_factory_set_global_config(
 ) -> Result<TransactionReceipt> {
     let abi = AbiParser::default()
         .parse(&[
-            "function setGlobalConfig((uint256,uint256,uint16,address,uint256,uint256,uint256,uint256) config)"
+            "function setGlobalConfig((uint256,uint256,uint16,address,uint256,uint256,uint256,uint256) config)",
         ])
         .context("cannot parse setGlobalConfig ABI")?;
     let contract = Contract::new(factory, abi, client);

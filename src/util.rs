@@ -4,7 +4,7 @@ use ethers::contract::builders::ContractCall;
 use ethers::prelude::*;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::contracts::SignerClient;
+use crate::chain::contracts::SignerClient;
 
 pub fn parse_amount_units(value: &str, decimals: u8) -> Result<U256> {
     let parsed = ethers::utils::parse_units(value, usize::from(decimals))
@@ -37,10 +37,4 @@ pub async fn send_and_wait<D: Detokenize>(
     pending
         .await?
         .ok_or_else(|| anyhow!("transaction dropped before inclusion"))
-}
-
-pub fn print_receipt(receipt: &TransactionReceipt) {
-    println!("tx_hash: {:?}", receipt.transaction_hash);
-    println!("block: {}", receipt.block_number.unwrap_or_default());
-    println!("status: {}", receipt.status.unwrap_or_default());
 }
