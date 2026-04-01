@@ -1,109 +1,108 @@
 # backed-cli
 
-`backed-cli` is a Rust command-line interface for operating the current Backed on-chain backend.
-It reads the canonical deployment artifacts from `backend/deployments` and exposes a clean interface
-for the three core protocol surfaces:
+`backed-cli` is the command-line interface for the current Backed backend contracts.
 
-- `factory`: project creation, approval, metadata, status, and global configuration
-- `sale`: raise status, user claim/refund views, approvals, commitments, and sale lifecycle actions
-- `allowlist`: target contract administration for executor permissions
+It is implemented in TypeScript and runs directly on Node.js 24+, with a real terminal command:
 
-## What This CLI Targets
+```bash
+backed
+```
 
-This CLI is aligned with the current contracts inside `backend`, in particular:
+No Rust toolchain is required.
+
+## Purpose
+
+The CLI is designed around the contracts and deployment artifacts inside `backend`:
 
 - `AgentRaiseFactory`
 - `Sale`
 - `ContractAllowlist`
+- `backend/deployments/*.json`
 
-It assumes the deployment JSON files in `backend/deployments` are the source of truth for:
-
-- RPC endpoint
-- `AgentRaiseFactory` address
-- `ContractAllowlist` address
-- optional default collateral (`USDM`)
-
-## Project Structure
-
-The CLI is split by responsibility instead of keeping protocol logic in a single file:
-
-```text
-src/
-  main.rs             # entrypoint + command dispatch
-  cli.rs              # clap definitions
-  config.rs           # deployment resolution and runtime config
-  util.rs             # shared numeric and tx helpers
-  types.rs            # common domain types
-  chain/
-    client.rs         # provider and signer creation
-    contracts.rs      # ABI bindings and on-chain read helpers
-  commands/
-    network.rs        # network summary command
-    factory.rs        # factory command handlers
-    sale.rs           # sale command handlers
-    allowlist.rs      # allowlist command handlers
-  output/
-    mod.rs            # formatting and terminal output helpers
-```
+It resolves addresses and RPC configuration from the deployment files by default, while still allowing explicit overrides from flags or environment variables.
 
 ## Requirements
 
-- Rust and Cargo
-- access to a valid RPC endpoint for the selected network
-- a private key only for write commands
+- Node.js `>= 24`
+- npm
+- access to an RPC endpoint for the target network
+- a private key only when running write commands
 
-## Build
+## Installation
 
-From the repository root:
-
-```bash
-cd backed-cli
-cargo build
-```
-
-For a release binary:
+Install dependencies:
 
 ```bash
-cd backed-cli
-cargo build --release
+npm install
 ```
 
-## Run
-
-From the repository root:
+Expose the CLI globally on your machine:
 
 ```bash
-cargo run -p backed-cli -- --network testnet network
+npm link
 ```
 
-Or from inside the CLI directory:
+After that, the command is available as:
 
 ```bash
-cargo run -- --network testnet network
+backed --help
 ```
 
-## Configuration
+If you do not want a global link yet, you can still run it locally:
 
-The CLI automatically resolves configuration from:
+```bash
+node ./src/bin/backed.ts --help
+```
+
+## Development Scripts
+
+Run the CLI locally:
+
+```bash
+npm run dev -- --help
+```
+
+Run the smoke check:
+
+```bash
+npm run check
+```
+
+The current `build` script validates the executable entrypoint under Node 24:
+
+```bash
+npm run build
+```
+
+## Runtime Configuration
+
+The CLI resolves deployment data from:
 
 - `backend/deployments/megaeth-testnet.json`
 - `backend/deployments/megaeth-mainnet.json`
 
-### Supported Overrides
+### Global Flags
 
-Every runtime value can be overridden through flags or environment variables:
+```bash
+backed \
+  --network testnet \
+  --rpc-url https://example-rpc \
+  --factory 0x... \
+  --allowlist 0x... \
+  --private-key 0x...
+```
 
-| Purpose | Flag | Environment variable |
-|---|---|---|
-| network | `--network` | `BACKED_NETWORK` |
-| rpc url | `--rpc-url` | `BACKED_RPC_URL` |
-| factory address | `--factory` | `BACKED_FACTORY` |
-| allowlist address | `--allowlist` | `BACKED_ALLOWLIST` |
-| private key | `--private-key` | `BACKED_PRIVATE_KEY` |
+### Supported Environment Variables
+
+- `BACKED_NETWORK`
+- `BACKED_RPC_URL`
+- `BACKED_FACTORY`
+- `BACKED_ALLOWLIST`
+- `BACKED_PRIVATE_KEY`
 
 ### Network Selection
 
-Supported networks:
+Supported values:
 
 - `testnet`
 - `mainnet`
@@ -111,40 +110,41 @@ Supported networks:
 Example:
 
 ```bash
-cargo run -- --network testnet network
+backed --network testnet network
 ```
 
-### Write Commands
+## Command Overview
 
-Write commands require a signer. The current implementation supports:
+The CLI is split into four areas:
 
-- `--private-key <HEX_KEY>`
-- `BACKED_PRIVATE_KEY=<HEX_KEY>`
+- `network`
+- `factory`
+- `sale`
+- `allowlist`
 
-Example:
+Show the full help page:
 
 ```bash
-BACKED_PRIVATE_KEY=0x... cargo run -- --network testnet factory approve 0
+backed --help
 ```
-
-## Command Reference
 
 ## `network`
 
-Shows the resolved runtime configuration:
+Displays the resolved runtime configuration:
 
 ```bash
-cargo run -- --network testnet network
+backed --network testnet network
 ```
 
-Output includes:
+Typical output includes:
 
-- selected network label
+- selected network
+- deployment label
 - chain id
 - RPC URL
 - factory address
 - allowlist address
-- default collateral, when present
+- default collateral
 - deployment file path
 
 ## `factory`
@@ -153,52 +153,52 @@ Factory commands operate on `AgentRaiseFactory`.
 
 ### Read Commands
 
-Show overall factory status:
+Show high-level factory data:
 
 ```bash
-cargo run -- --network testnet factory info
+backed --network testnet factory info
 ```
 
-Show only the global config:
+Show only the global configuration:
 
 ```bash
-cargo run -- --network testnet factory global
+backed --network testnet factory global
 ```
 
-Inspect a collateral token:
+Inspect one collateral:
 
 ```bash
-cargo run -- --network testnet factory collateral 0x9f5A17BD53310D012544966b8e3cF7863fc8F05f
+backed --network testnet factory collateral 0x9f5A17BD53310D012544966b8e3cF7863fc8F05f
 ```
 
-Paginate projects:
+List projects with pagination:
 
 ```bash
-cargo run -- --network testnet factory list --from 0 --limit 20
+backed --network testnet factory list --from 0 --limit 20
 ```
 
 Inspect one project:
 
 ```bash
-cargo run -- --network testnet factory project 0
+backed --network testnet factory project 0
 ```
 
-Inspect the live raise snapshot for a project:
+Inspect raise snapshot:
 
 ```bash
-cargo run -- --network testnet factory snapshot 0
+backed --network testnet factory snapshot 0
 ```
 
-Inspect one wallet commitment through the factory:
+Inspect one user commitment through the factory:
 
 ```bash
-cargo run -- --network testnet factory commitment 0 0x1111111111111111111111111111111111111111
+backed --network testnet factory commitment 0 0x1111111111111111111111111111111111111111
 ```
 
-List projects linked to an agent id:
+List project ids for an agent id:
 
 ```bash
-cargo run -- --network testnet factory agent-projects 0
+backed --network testnet factory agent-projects 0
 ```
 
 ### Write Commands
@@ -206,10 +206,10 @@ cargo run -- --network testnet factory agent-projects 0
 Create a project:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory create \
+backed --network testnet --private-key 0x... factory create \
   --agent-id 0 \
   --name "Backed Demo" \
-  --description "Demo raise for validation" \
+  --description "Demo raise used for validation" \
   --categories "defi,infra" \
   --token-name BACKED \
   --token-symbol BACKED \
@@ -221,28 +221,28 @@ cargo run -- --network testnet --private-key 0x... factory create \
 Approve a project:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory approve 0
+backed --network testnet --private-key 0x... factory approve 0
 ```
 
 Revoke a project:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory revoke 0
+backed --network testnet --private-key 0x... factory revoke 0
 ```
 
-Update project metadata:
+Update metadata:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory update-metadata \
+backed --network testnet --private-key 0x... factory update-metadata \
   --project-id 0 \
-  --description "Updated project description" \
+  --description "Updated description" \
   --categories "defi,ai"
 ```
 
 Update operational status:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory set-status \
+backed --network testnet --private-key 0x... factory set-status \
   --project-id 0 \
   --status operating \
   --status-note "Treasury live"
@@ -251,14 +251,14 @@ cargo run -- --network testnet --private-key 0x... factory set-status \
 Enable or disable a collateral:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory set-collateral \
+backed --network testnet --private-key 0x... factory set-collateral \
   0x9f5A17BD53310D012544966b8e3cF7863fc8F05f true
 ```
 
 Update global config:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory set-global \
+backed --network testnet --private-key 0x... factory set-global \
   --min-raise 100 \
   --max-raise 100000 \
   --platform-fee-bps 100 \
@@ -271,29 +271,29 @@ cargo run -- --network testnet --private-key 0x... factory set-global \
 
 ### Factory Notes
 
-- `duration-minutes` and `launch-in-minutes` are converted to seconds internally.
-- create uses the default collateral from deployments when `--collateral` is omitted.
-- factory views assume the deployed ABI matches the current backend contracts.
+- `duration-minutes` and `launch-in-minutes` are converted internally to seconds
+- if `--collateral` is omitted during create, the CLI uses the default collateral from the deployment file when available
+- factory views assume the deployment ABI matches the current contracts in `backend`
 
 ## `sale`
 
 Sale commands can target a sale in two ways:
 
-- direct address: `--sale <SALE_ADDRESS>`
-- indirect project lookup: `--project-id <ID>`
+- direct sale address with `--sale`
+- indirect lookup through `--project-id`
 
 ### Read Commands
 
 Show sale status:
 
 ```bash
-cargo run -- --network testnet sale status --sale 0x2222222222222222222222222222222222222222
+backed --network testnet sale status --sale 0x2222222222222222222222222222222222222222
 ```
 
 Show claimable amounts for one user:
 
 ```bash
-cargo run -- --network testnet sale claimable \
+backed --network testnet sale claimable \
   --sale 0x2222222222222222222222222222222222222222 \
   0x1111111111111111111111111111111111111111
 ```
@@ -301,7 +301,7 @@ cargo run -- --network testnet sale claimable \
 Show refundable amount for one user:
 
 ```bash
-cargo run -- --network testnet sale refundable \
+backed --network testnet sale refundable \
   --sale 0x2222222222222222222222222222222222222222 \
   0x1111111111111111111111111111111111111111
 ```
@@ -309,83 +309,80 @@ cargo run -- --network testnet sale refundable \
 Show committed amount for one user:
 
 ```bash
-cargo run -- --network testnet sale commitment \
+backed --network testnet sale commitment \
   --sale 0x2222222222222222222222222222222222222222 \
   0x1111111111111111111111111111111111111111
 ```
 
 ### Write Commands
 
-Approve collateral for a sale:
+Approve collateral:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale approve-collateral \
-  --sale 0x2222222222222222222222222222222222222222 \
+backed --network testnet --private-key 0x... sale approve-collateral \
+  --project-id 0 \
   100
 ```
 
 Commit collateral:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale commit \
-  --sale 0x2222222222222222222222222222222222222222 \
+backed --network testnet --private-key 0x... sale commit \
+  --project-id 0 \
   100
 ```
 
-Finalize a sale:
+Finalize:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale finalize \
-  --sale 0x2222222222222222222222222222222222222222
+backed --network testnet --private-key 0x... sale finalize --project-id 0
 ```
 
 Claim:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale claim \
-  --sale 0x2222222222222222222222222222222222222222
+backed --network testnet --private-key 0x... sale claim --project-id 0
 ```
 
 Refund:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale refund \
-  --sale 0x2222222222222222222222222222222222222222
+backed --network testnet --private-key 0x... sale refund --project-id 0
 ```
 
 Emergency refund:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale emergency-refund \
-  --sale 0x2222222222222222222222222222222222222222
+backed --network testnet --private-key 0x... sale emergency-refund --project-id 0
 ```
 
-### Raw Amount Mode
+### Human-Readable vs Raw Amounts
 
-By default:
+These commands accept human-readable token amounts by default:
 
 - `sale approve-collateral`
 - `sale commit`
 
-accept human-readable token amounts using the token decimals fetched on-chain.
-
-To pass raw `uint256` values directly, add `--raw`:
+Example:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale commit \
-  --sale 0x2222222222222222222222222222222222222222 \
-  1000000 \
-  --raw
+backed --network testnet --private-key 0x... sale commit --project-id 0 100.5
 ```
 
-### Sale Safety Checks
+To pass raw `uint256` values, add `--raw`:
 
-Before `sale commit`, the CLI verifies:
+```bash
+backed --network testnet --private-key 0x... sale commit --project-id 0 100500000 --raw
+```
 
-- allowance
-- token balance
+### Safety Checks
 
-If either check fails, the transaction is not sent.
+Before sending `sale commit`, the CLI checks:
+
+- ERC-20 allowance
+- ERC-20 balance
+
+If either is insufficient, the transaction is not sent.
 
 ## `allowlist`
 
@@ -393,16 +390,16 @@ Allowlist commands operate on `ContractAllowlist`.
 
 ### Read Commands
 
-Show admin:
+Show current admin:
 
 ```bash
-cargo run -- --network testnet allowlist info
+backed --network testnet allowlist info
 ```
 
-Check if a target is allowed:
+Check whether a target is allowed:
 
 ```bash
-cargo run -- --network testnet allowlist is-allowed \
+backed --network testnet allowlist is-allowed \
   0x3333333333333333333333333333333333333333
 ```
 
@@ -411,37 +408,37 @@ cargo run -- --network testnet allowlist is-allowed \
 Add a target:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... allowlist add \
+backed --network testnet --private-key 0x... allowlist add \
   0x3333333333333333333333333333333333333333
 ```
 
 Remove a target:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... allowlist remove \
+backed --network testnet --private-key 0x... allowlist remove \
   0x3333333333333333333333333333333333333333
 ```
 
 Transfer admin:
 
 ```bash
-cargo run -- --network testnet --private-key 0x... allowlist transfer-admin \
+backed --network testnet --private-key 0x... allowlist transfer-admin \
   0x4444444444444444444444444444444444444444
 ```
 
 ## Typical Workflows
 
-### 1. Validate Environment
+### Validate the Environment
 
 ```bash
-cargo run -- --network testnet network
-cargo run -- --network testnet factory info
+backed --network testnet network
+backed --network testnet factory info
 ```
 
-### 2. Create and Approve a Raise
+### Create and Approve a Raise
 
 ```bash
-cargo run -- --network testnet --private-key 0x... factory create \
+backed --network testnet --private-key 0x... factory create \
   --agent-id 0 \
   --name "Backed Demo" \
   --description "Demo raise" \
@@ -451,69 +448,108 @@ cargo run -- --network testnet --private-key 0x... factory create \
   --duration-minutes 30 \
   --launch-in-minutes 2
 
-cargo run -- --network testnet --private-key 0x... factory approve 0
+backed --network testnet --private-key 0x... factory approve 0
 ```
 
-### 3. Commit to a Sale
+### Commit to a Sale
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale approve-collateral --project-id 0 100
-cargo run -- --network testnet --private-key 0x... sale commit --project-id 0 100
+backed --network testnet --private-key 0x... sale approve-collateral --project-id 0 100
+backed --network testnet --private-key 0x... sale commit --project-id 0 100
 ```
 
-### 4. Finalize and Claim
+### Finalize and Claim
 
 ```bash
-cargo run -- --network testnet --private-key 0x... sale finalize --project-id 0
-cargo run -- --network testnet --private-key 0x... sale claim --project-id 0
+backed --network testnet --private-key 0x... sale finalize --project-id 0
+backed --network testnet --private-key 0x... sale claim --project-id 0
+```
+
+## Architecture
+
+The project is intentionally split by responsibility:
+
+```text
+src/
+  bin/
+    backed.ts         # executable entrypoint
+  cli/
+    help.ts           # help output
+    parser.ts         # argument parsing and validation
+    types.ts          # CLI command types
+  commands/
+    allowlist.ts      # allowlist handlers
+    factory.ts        # factory handlers
+    network.ts        # network handler
+    sale.ts           # sale handlers
+  chain/
+    abis.ts           # contract ABIs
+    client.ts         # provider, wallet, contract factories
+    contracts.ts      # higher-level chain helpers
+  config/
+    runtime.ts        # deployment resolution and runtime config
+  lib/
+    output.ts         # terminal printing helpers
+    utils.ts          # amount, time, tx helpers
+  types/
+    project.ts        # project view type
 ```
 
 ## Troubleshooting
 
-### Wrong Contract Address
-
-If a command points to an outdated deployment:
-
-- override `--factory`
-- override `--allowlist`
-- use `--sale` directly for sale commands
-
-### ABI Mismatch or Revert on Read
-
-The CLI is designed for the current contracts in `backend`.
-If the deployment JSON points to older contracts, some reads may revert.
-
-Fix:
-
-- align `backend/deployments/*.json` with the active contracts
-- or pass explicit addresses with CLI flags
-
-### Missing Signer
-
-If a write command fails immediately, verify one of:
-
-- `--private-key`
-- `BACKED_PRIVATE_KEY`
-
-### RPC Issues
-
-If the CLI cannot connect:
-
-- verify `BACKED_RPC_URL` or `--rpc-url`
-- verify the RPC matches the selected network
-- rerun `network` to inspect the resolved configuration
-
-## Verification
+### The command `backed` is not found
 
 Run:
 
 ```bash
-cargo fmt
-cargo check
+npm link
 ```
 
-## Current Limitations
+If needed, verify your npm global bin directory is in `PATH`.
 
-- signer support is currently private-key based
-- there is no keystore or hardware-wallet integration yet
-- terminal output is intentionally plain and script-friendly
+### A write command fails immediately
+
+Verify one of the following is present:
+
+- `--private-key`
+- `BACKED_PRIVATE_KEY`
+
+### A command points to the wrong deployment
+
+Override one or more of:
+
+- `--rpc-url`
+- `--factory`
+- `--allowlist`
+- `--sale`
+
+### A read call reverts
+
+This usually means the deployment JSON does not match the current contract version.
+
+Fix:
+
+- align `backend/deployments/*.json` with the current deployed contracts
+- or pass explicit addresses through CLI flags
+
+### RPC issues
+
+Verify:
+
+- the selected network is correct
+- the RPC endpoint is reachable
+- the deployment file contains the intended RPC URL
+
+## Verification
+
+Smoke check the executable:
+
+```bash
+npm run check
+```
+
+Inspect the resolved environment:
+
+```bash
+backed network
+```

@@ -1,0 +1,23 @@
+{
+  "name": "backed-cli",
+  "version": "0.1.0",
+  "description": "Backed protocol command-line interface",
+  "type": "module",
+  "bin": {
+    "backed": "./src/bin/backed.ts"
+  },
+  "scripts": {
+    "check": "node ./src/bin/backed.ts --help >/dev/null",
+    "dev": "node ./src/bin/backed.ts",
+    "build": "node ./src/bin/backed.ts --help >/dev/null"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "dependencies": {
+    "ethers": "^6.16.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  }
+}
