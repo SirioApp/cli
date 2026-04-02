@@ -2,7 +2,14 @@ import { Contract, JsonRpcProvider, Wallet, getAddress, isAddress, type Contract
 import type { GlobalOptions, SaleTarget } from "../cli/types.ts";
 import { CliUserError } from "../cli/parser.ts";
 import type { RuntimeConfig } from "../config/runtime.ts";
-import { ALLOWLIST_ABI, ERC20_ABI, FACTORY_ABI, FACTORY_ADMIN_ABI, SALE_ABI } from "./abis.ts";
+import {
+  ALLOWLIST_ABI,
+  ERC20_ABI,
+  FACTORY_ABI,
+  FACTORY_ADMIN_ABI,
+  SALE_ABI,
+  SHARE_TOKEN_ABI,
+} from "./abis.ts";
 
 export function createReadClient(config: RuntimeConfig): JsonRpcProvider {
   return new JsonRpcProvider(config.rpcUrl, config.chainId);
@@ -34,6 +41,10 @@ export function createAllowlistContract(address: string, runner: ContractRunner)
 
 export function createErc20Contract(address: string, runner: ContractRunner): Contract {
   return new Contract(getAddress(address), ERC20_ABI, runner);
+}
+
+export function createShareTokenContract(address: string, runner: ContractRunner): Contract {
+  return new Contract(getAddress(address), SHARE_TOKEN_ABI, runner);
 }
 
 export function normalizeAddress(value: string, label: string): string {

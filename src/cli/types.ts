@@ -53,10 +53,6 @@ export type FactoryCommand =
       maxRaise: string;
       platformFeeBps: number;
       platformFeeRecipient: string;
-      minDurationMinutes: number;
-      maxDurationMinutes: number;
-      minLaunchDelayMinutes: number;
-      maxLaunchDelayMinutes: number;
     };
 
 export type SaleCommand =

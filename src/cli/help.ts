@@ -36,7 +36,7 @@ Factory:
   backed factory update-metadata --project-id <id> --description <text> [--categories <csv>]
   backed factory set-status --project-id <id> --status <raising|deploying|operating|paused|closed> [--status-note <text>]
   backed factory set-collateral <address> <true|false>
-  backed factory set-global --min-raise <amount> --max-raise <amount> --platform-fee-bps <bps> --platform-fee-recipient <address> --min-duration-minutes <n> --max-duration-minutes <n> [--min-launch-delay-minutes <n>] --max-launch-delay-minutes <n>
+  backed factory set-global --min-raise <amount> --max-raise <amount> --platform-fee-bps <bps> --platform-fee-recipient <address>
 
 Sale:
   backed sale status (--sale <address> | --project-id <id>)

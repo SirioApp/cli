@@ -12,7 +12,7 @@ This CLI covers three contract areas:
 - `sale`: sale status, commitments, claim/refund flows, and collateral approval
 - `allowlist`: executor target management
 
-When you create a raise, the CLI also lets you configure an investor lockup. Investors can `claim` shares right after a successful finalization, but they cannot `redeem` or `withdraw` from the vault until that lockup has ended.
+When you create a raise, the CLI also lets you configure a fund term lockup. Investors can `claim` shares right after a successful finalization, but they cannot redeem those shares back into collateral until the fund term has ended and the treasury has finalized settlement.
 
 ## Quick Start
 
@@ -168,7 +168,7 @@ Claim after a successful sale:
 backed --network testnet --private-key 0x... sale claim --project-id 0
 ```
 
-`claim` transfers vault shares into the wallet. Exiting the vault is still blocked until the configured lockup has ended.
+`claim` transfers fund shares into the wallet. Those shares become redeemable for collateral only after the treasury unwinds and finalizes settlement at the end of the configured fund term.
 
 Refund when the sale failed:
 
@@ -214,7 +214,7 @@ Current behavior:
 - `npm run dev` runs the CLI entrypoint directly
 - `npm run check` performs a smoke test
 - `npm run build` validates the executable entrypoint in the current runtime
-- `factory create --lockup-minutes <n>` configures how long investors must wait after the sale before vault exits open
+- `factory create --lockup-minutes <n>` configures how long the fund term lasts after the raise ends before settlement and redemption can open
 
 ## Command Reference
 
@@ -324,11 +324,7 @@ backed --private-key 0x... factory set-global \
   --min-raise 100 \
   --max-raise 100000 \
   --platform-fee-bps 100 \
-  --platform-fee-recipient 0x1111111111111111111111111111111111111111 \
-  --min-duration-minutes 10 \
-  --max-duration-minutes 1440 \
-  --min-launch-delay-minutes 0 \
-  --max-launch-delay-minutes 1440
+  --platform-fee-recipient 0x1111111111111111111111111111111111111111
 ```
 
 ## `sale`

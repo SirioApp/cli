@@ -44,6 +44,14 @@ export const ERC20_ABI = [
   "function approve(address spender, uint256 amount) returns (bool)",
 ] as const;
 
+export const SHARE_TOKEN_ABI = [
+  "function LOCKUP_END_TIME() view returns (uint256)",
+  "function settled() view returns (bool)",
+  "function totalAssets() view returns (uint256)",
+  "function previewRedeem(uint256 shares) view returns (uint256)",
+  "function redeem(uint256 shares, address receiver, address owner) returns (uint256)",
+] as const;
+
 export const ALLOWLIST_ABI = [
   "function admin() view returns (address)",
   "function isAllowed(address target) view returns (bool)",

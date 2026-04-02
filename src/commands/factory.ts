@@ -203,6 +203,16 @@ export async function runFactory(
     }
     case "set-global": {
       const writeClient = createWriteClient(global, config);
+      const current = (await factory.globalConfig()) as readonly [
+        bigint,
+        bigint,
+        number,
+        string,
+        bigint,
+        bigint,
+        bigint,
+        bigint,
+      ];
       printReceipt(
         await sendAndWait(
           sendFactoryGlobalConfig(config.factory, writeClient, [
@@ -210,10 +220,10 @@ export async function runFactory(
             parseAmountUnits(command.maxRaise, 18),
             command.platformFeeBps,
             normalizeAddress(command.platformFeeRecipient, "platform-fee-recipient"),
-            minutesToSeconds(command.minDurationMinutes, "min-duration-minutes"),
-            minutesToSeconds(command.maxDurationMinutes, "max-duration-minutes"),
-            minutesToSeconds(command.minLaunchDelayMinutes, "min-launch-delay-minutes"),
-            minutesToSeconds(command.maxLaunchDelayMinutes, "max-launch-delay-minutes"),
+            current[4],
+            current[5],
+            current[6],
+            current[7],
           ]),
         ),
       );

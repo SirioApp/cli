@@ -64,4 +64,5 @@ export function printGlobalConfig(config: {
   console.log(`  max_duration_seconds: ${config.maxDuration}`);
   console.log(`  min_launch_delay_seconds: ${config.minLaunchDelay}`);
   console.log(`  max_launch_delay_seconds: ${config.maxLaunchDelay}`);
+  console.log(`  time_limits_enforced: false`);
 }

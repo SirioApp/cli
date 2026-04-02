@@ -6,6 +6,7 @@ import {
   createFactoryContract,
   createReadClient,
   createSaleContract,
+  createShareTokenContract,
   createWriteClient,
   ensureSaleTarget,
   normalizeAddress,
@@ -99,7 +100,17 @@ async function showStatus(
   );
   console.log(`finalized: ${finalized}`);
   console.log(`failed: ${failed}`);
-  console.log(`share_token: ${String(await sale.token())}`);
+  const shareTokenAddress = String(await sale.token());
+  console.log(`share_token: ${shareTokenAddress}`);
+  if (shareTokenAddress !== "0x0000000000000000000000000000000000000000") {
+    const shareToken = createShareTokenContract(shareTokenAddress, readClient);
+    try {
+      const poolAssets = (await shareToken.totalAssets()) as bigint;
+      console.log(`fund_term_end: ${String(await shareToken.LOCKUP_END_TIME())}`);
+      console.log(`settled: ${Boolean(await shareToken.settled())}`);
+      console.log(`redeem_pool: ${formatTokenAmount(poolAssets, decimals)} (${poolAssets})`);
+    } catch {}
+  }
 }
 
 async function showClaimable(
@@ -112,14 +123,24 @@ async function showClaimable(
   const sale = createSaleContract(saleAddress, readClient);
   const normalizedUser = normalizeAddress(user, "user");
   const collateral = await readSaleCollateral(saleAddress, readClient);
-  const { decimals, symbol } = await readTokenMetadata(collateral, readClient);
+  const { decimals: collateralDecimals, symbol: collateralSymbol } =
+    await readTokenMetadata(collateral, readClient);
   const [payout, refund] = (await sale.getClaimable(normalizedUser)) as readonly [bigint, bigint];
+  const shareTokenAddress = String(await sale.token());
+  const hasShareToken = shareTokenAddress !== "0x0000000000000000000000000000000000000000";
+  const { decimals: shareDecimals, symbol: shareSymbol } = hasShareToken
+    ? await readTokenMetadata(shareTokenAddress, readClient)
+    : { decimals: 18, symbol: "SHARE" };
 
   console.log(`sale: ${saleAddress}`);
   console.log(`user: ${normalizedUser}`);
-  console.log(`token: ${symbol}`);
-  console.log(`payout: ${formatTokenAmount(payout, decimals)} (${payout})`);
-  console.log(`refund: ${formatTokenAmount(refund, decimals)} (${refund})`);
+  console.log(`share_token: ${shareSymbol}`);
+  console.log(
+    `claimable_shares: ${formatTokenAmount(payout, shareDecimals)} ${shareSymbol} (${payout})`,
+  );
+  console.log(
+    `overflow_refund: ${formatTokenAmount(refund, collateralDecimals)} ${collateralSymbol} (${refund})`,
+  );
 }
 
 async function showRefundable(

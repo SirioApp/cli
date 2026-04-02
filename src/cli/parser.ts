@@ -221,10 +221,6 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
         maxRaise: readRequiredOption(options, "--max-raise"),
         platformFeeBps: readRequiredIntOption(options, "--platform-fee-bps"),
         platformFeeRecipient: readRequiredOption(options, "--platform-fee-recipient"),
-        minDurationMinutes: readRequiredIntOption(options, "--min-duration-minutes"),
-        maxDurationMinutes: readRequiredIntOption(options, "--max-duration-minutes"),
-        minLaunchDelayMinutes: readIntOption(options, "--min-launch-delay-minutes", 0),
-        maxLaunchDelayMinutes: readRequiredIntOption(options, "--max-launch-delay-minutes"),
       };
     }
     default:
