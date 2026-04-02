@@ -12,6 +12,8 @@ This CLI covers three contract areas:
 - `sale`: sale status, commitments, claim/refund flows, and collateral approval
 - `allowlist`: executor target management
 
+When you create a raise, the CLI also lets you configure an investor lockup. Investors can `claim` shares right after a successful finalization, but they cannot `redeem` or `withdraw` from the vault until that lockup has ended.
+
 ## Quick Start
 
 ### 1. Install dependencies
@@ -107,6 +109,7 @@ backed --network testnet --private-key 0x... factory create \
   --token-name BACKED \
   --token-symbol BACKED \
   --duration-minutes 60 \
+  --lockup-minutes 1440 \
   --launch-in-minutes 5
 ```
 
@@ -114,6 +117,7 @@ Notes:
 
 - `--collateral` is optional if the deployment file already defines a default collateral
 - `--launch-in-minutes` is optional; default is `0`
+- `--lockup-minutes` is optional; default is `0`
 
 ### Approve a project
 
@@ -164,6 +168,8 @@ Claim after a successful sale:
 backed --network testnet --private-key 0x... sale claim --project-id 0
 ```
 
+`claim` transfers vault shares into the wallet. Exiting the vault is still blocked until the configured lockup has ended.
+
 Refund when the sale failed:
 
 ```bash
@@ -208,6 +214,7 @@ Current behavior:
 - `npm run dev` runs the CLI entrypoint directly
 - `npm run check` performs a smoke test
 - `npm run build` validates the executable entrypoint in the current runtime
+- `factory create --lockup-minutes <n>` configures how long investors must wait after the sale before vault exits open
 
 ## Command Reference
 

@@ -169,6 +169,11 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
         tokenName: readRequiredOption(options, "--token-name"),
         tokenSymbol: readRequiredOption(options, "--token-symbol"),
         durationMinutes: readRequiredIntOption(options, "--duration-minutes"),
+        lockupMinutes: readIntOption(
+          options,
+          "--lockup-minutes",
+          readIntOption(options, "--redeem-delay-minutes", 0),
+        ),
         launchInMinutes: readIntOption(options, "--launch-in-minutes", 0),
         agentAddress: readOptionalOption(options, "--agent-address"),
         collateral: readOptionalOption(options, "--collateral"),

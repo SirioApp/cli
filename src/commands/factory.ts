@@ -146,6 +146,7 @@ export async function runFactory(
         collateral,
         minutesToSeconds(command.durationMinutes, "duration-minutes"),
         BigInt(launchTimestamp),
+        BigInt(command.lockupMinutes),
         command.tokenName,
         command.tokenSymbol,
       );
