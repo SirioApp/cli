@@ -16,9 +16,9 @@ export function createReadClient(config: RuntimeConfig): JsonRpcProvider {
 }
 
 export function createWriteClient(global: GlobalOptions, config: RuntimeConfig): Wallet {
-  const privateKey = global.privateKey ?? process.env.BACKED_PRIVATE_KEY;
+  const privateKey = global.privateKey ?? process.env.BACKED_PRIVATE_KEY ?? process.env.PRIVATE_KEY;
   if (!privateKey) {
-    throw new CliUserError("write command requires --private-key or BACKED_PRIVATE_KEY");
+    throw new CliUserError("write command requires --private-key, BACKED_PRIVATE_KEY, or PRIVATE_KEY");
   }
   return new Wallet(privateKey, createReadClient(config));
 }

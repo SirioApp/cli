@@ -12,7 +12,7 @@ Global options:
   --rpc-url <url>
   --factory <address>
   --allowlist <address>
-  --private-key <hex>
+  --private-key <hex>        Overrides BACKED_PRIVATE_KEY / PRIVATE_KEY for write commands
   --help
 
 Commands:

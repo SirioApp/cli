@@ -62,7 +62,6 @@ backed \
   --rpc-url https://example-rpc \
   --factory 0x... \
   --allowlist 0x... \
-  --private-key 0x... \
   <command>
 ```
 
@@ -73,6 +72,13 @@ backed \
 - `BACKED_FACTORY`
 - `BACKED_ALLOWLIST`
 - `BACKED_PRIVATE_KEY`
+- `PRIVATE_KEY` (`BACKED_PRIVATE_KEY` takes precedence)
+
+For write commands, set the key once in your shell instead of passing `--private-key` every time:
+
+```bash
+export BACKED_PRIVATE_KEY=0x...
+```
 
 ### Supported networks
 
@@ -101,7 +107,7 @@ backed factory info
 ### Create a project
 
 ```bash
-backed --network testnet --private-key 0x... factory create \
+backed --network testnet factory create \
   --agent-id 0 \
   --name "Backed Demo" \
   --description "Initial validation raise" \
@@ -124,7 +130,7 @@ Notes:
 The sale cannot accept commitments until the project is approved:
 
 ```bash
-backed --network testnet --private-key 0x... factory approve 0
+backed --network testnet factory approve 0
 ```
 
 ### Inspect a project and its raise state
@@ -139,7 +145,7 @@ backed --network testnet factory snapshot 0
 You must approve the sale contract before committing ERC-20 collateral:
 
 ```bash
-backed --network testnet --private-key 0x... sale approve-collateral \
+backed --network testnet sale approve-collateral \
   --project-id 0 \
   100
 ```
@@ -147,7 +153,7 @@ backed --network testnet --private-key 0x... sale approve-collateral \
 ### Commit to a sale
 
 ```bash
-backed --network testnet --private-key 0x... sale commit \
+backed --network testnet sale commit \
   --project-id 0 \
   100
 ```
@@ -157,7 +163,7 @@ The CLI checks allowance and token balance before sending the transaction.
 ### Finalize a sale
 
 ```bash
-backed --network testnet --private-key 0x... sale finalize --project-id 0
+backed --network testnet sale finalize --project-id 0
 ```
 
 ### Claim or refund
@@ -165,7 +171,7 @@ backed --network testnet --private-key 0x... sale finalize --project-id 0
 Claim after a successful sale:
 
 ```bash
-backed --network testnet --private-key 0x... sale claim --project-id 0
+backed --network testnet sale claim --project-id 0
 ```
 
 `claim` transfers fund shares into the wallet. Those shares become redeemable for collateral only after the treasury unwinds and finalizes settlement at the end of the configured fund term.
@@ -173,7 +179,7 @@ backed --network testnet --private-key 0x... sale claim --project-id 0
 Refund when the sale failed:
 
 ```bash
-backed --network testnet --private-key 0x... sale refund --project-id 0
+backed --network testnet sale refund --project-id 0
 ```
 
 ### Manage the allowlist
@@ -187,7 +193,7 @@ backed allowlist info
 Allow a target:
 
 ```bash
-backed --network testnet --private-key 0x... allowlist add \
+backed --network testnet allowlist add \
   0x3333333333333333333333333333333333333333
 ```
 
@@ -283,19 +289,19 @@ backed factory agent-projects 0
 Approve:
 
 ```bash
-backed --private-key 0x... factory approve 0
+backed factory approve 0
 ```
 
 Revoke:
 
 ```bash
-backed --private-key 0x... factory revoke 0
+backed factory revoke 0
 ```
 
 Update metadata:
 
 ```bash
-backed --private-key 0x... factory update-metadata \
+backed factory update-metadata \
   --project-id 0 \
   --description "Updated description" \
   --categories "defi,ai"
@@ -304,7 +310,7 @@ backed --private-key 0x... factory update-metadata \
 Update status:
 
 ```bash
-backed --private-key 0x... factory set-status \
+backed factory set-status \
   --project-id 0 \
   --status operating \
   --status-note "Treasury live"
@@ -313,14 +319,14 @@ backed --private-key 0x... factory set-status \
 Set collateral:
 
 ```bash
-backed --private-key 0x... factory set-collateral \
+backed factory set-collateral \
   0x9f5A17BD53310D012544966b8e3cF7863fc8F05f true
 ```
 
 Set global config:
 
 ```bash
-backed --private-key 0x... factory set-global \
+backed factory set-global \
   --min-raise 100 \
   --max-raise 100000 \
   --platform-fee-bps 100 \
@@ -365,37 +371,37 @@ backed sale commitment --project-id 0 0x1111111111111111111111111111111111111111
 Approve collateral:
 
 ```bash
-backed --private-key 0x... sale approve-collateral --project-id 0 100
+backed sale approve-collateral --project-id 0 100
 ```
 
 Commit:
 
 ```bash
-backed --private-key 0x... sale commit --project-id 0 100
+backed sale commit --project-id 0 100
 ```
 
 Finalize:
 
 ```bash
-backed --private-key 0x... sale finalize --project-id 0
+backed sale finalize --project-id 0
 ```
 
 Claim:
 
 ```bash
-backed --private-key 0x... sale claim --project-id 0
+backed sale claim --project-id 0
 ```
 
 Refund:
 
 ```bash
-backed --private-key 0x... sale refund --project-id 0
+backed sale refund --project-id 0
 ```
 
 Emergency refund:
 
 ```bash
-backed --private-key 0x... sale emergency-refund --project-id 0
+backed sale emergency-refund --project-id 0
 ```
 
 ### Amount handling
@@ -405,13 +411,13 @@ backed --private-key 0x... sale emergency-refund --project-id 0
 Example:
 
 ```bash
-backed --private-key 0x... sale commit --project-id 0 100.5
+backed sale commit --project-id 0 100.5
 ```
 
 Use `--raw` to pass raw `uint256` values:
 
 ```bash
-backed --private-key 0x... sale commit --project-id 0 100500000 --raw
+backed sale commit --project-id 0 100500000 --raw
 ```
 
 ## `allowlist`
@@ -435,19 +441,19 @@ backed allowlist is-allowed 0x3333333333333333333333333333333333333333
 Add target:
 
 ```bash
-backed --private-key 0x... allowlist add 0x3333333333333333333333333333333333333333
+backed allowlist add 0x3333333333333333333333333333333333333333
 ```
 
 Remove target:
 
 ```bash
-backed --private-key 0x... allowlist remove 0x3333333333333333333333333333333333333333
+backed allowlist remove 0x3333333333333333333333333333333333333333
 ```
 
 Transfer admin:
 
 ```bash
-backed --private-key 0x... allowlist transfer-admin 0x4444444444444444444444444444444444444444
+backed allowlist transfer-admin 0x4444444444444444444444444444444444444444
 ```
 
 ## Troubleshooting
@@ -468,6 +474,7 @@ Provide one of:
 
 - `--private-key`
 - `BACKED_PRIVATE_KEY`
+- `PRIVATE_KEY`
 
 ### A command resolves the wrong deployment
 
