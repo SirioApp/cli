@@ -67,6 +67,8 @@ backed \
 
 ### Environment variables
 
+The CLI automatically loads a local `.env` file before parsing commands.
+
 - `BACKED_NETWORK`
 - `BACKED_RPC_URL`
 - `BACKED_FACTORY`

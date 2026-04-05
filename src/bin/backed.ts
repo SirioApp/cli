@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
+import { loadEnvFile } from "node:process";
 import { CliUserError, parseCli } from "../cli/parser.ts";
 import { runAllowlist } from "../commands/allowlist.ts";
 import { runFactory } from "../commands/factory.ts";
 import { runNetwork } from "../commands/network.ts";
 import { runSale } from "../commands/sale.ts";
 import { resolveRuntimeConfig } from "../config/runtime.ts";
+
+loadEnvFile();
 
 async function main(): Promise<void> {
   const parsed = parseCli(process.argv.slice(2));
