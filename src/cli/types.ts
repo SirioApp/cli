@@ -31,9 +31,10 @@ export type FactoryCommand =
       categories: string;
       tokenName: string;
       tokenSymbol: string;
-      durationMinutes: number;
-      lockupMinutes: number;
-      launchInMinutes: number;
+      durationSeconds?: number;
+      durationMinutes?: number;
+      launchInSeconds?: number;
+      launchInMinutes?: number;
       agentAddress?: string;
       collateral?: string;
     }

@@ -6,7 +6,7 @@ export const FACTORY_ABI = [
   "function allowedCollateral(address collateral) view returns (bool)",
   "function minRaiseForCollateral(address collateral) view returns (uint256)",
   "function maxRaiseForCollateral(address collateral) view returns (uint256)",
-  "function createAgentRaise(uint256,string,string,string,address,address,uint256,uint256,uint256,string,string) returns (uint256)",
+  "function createAgentRaise(uint256,string,string,string,address,address,uint256,uint256,string,string) returns (uint256)",
   "function approveProject(uint256 projectId)",
   "function revokeProject(uint256 projectId)",
   "function setAllowedCollateral(address collateral, bool allowed)",

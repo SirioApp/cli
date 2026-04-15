@@ -13,6 +13,7 @@ import {
 } from "../chain/contracts.ts";
 import { printGlobalConfig, printProject, printReceipt } from "../lib/output.ts";
 import {
+  intToSeconds,
   minutesToSeconds,
   parseAmountUnits,
   sendAndWait,
@@ -134,9 +135,17 @@ export async function runFactory(
       if (!collateral) {
         throw new Error("collateral not set: pass --collateral or configure USDM in deployment file");
       }
+      const launchDelaySeconds =
+        command.launchInSeconds !== undefined
+          ? intToSeconds(command.launchInSeconds, "launch-in-seconds")
+          : minutesToSeconds(command.launchInMinutes ?? 0, "launch-in-minutes");
+      const durationSeconds =
+        command.durationSeconds !== undefined
+          ? intToSeconds(command.durationSeconds, "duration-seconds")
+          : minutesToSeconds(command.durationMinutes ?? 0, "duration-minutes");
       const launchTimestamp =
         unixNow() +
-        Number(minutesToSeconds(command.launchInMinutes, "launch-in-minutes"));
+        Number(launchDelaySeconds);
       const transaction = writeFactory.createAgentRaise(
         BigInt(command.agentId),
         command.name,
@@ -144,9 +153,8 @@ export async function runFactory(
         command.categories,
         normalizeAddress(command.agentAddress ?? writeClient.address, "agent-address"),
         collateral,
-        minutesToSeconds(command.durationMinutes, "duration-minutes"),
+        durationSeconds,
         BigInt(launchTimestamp),
-        BigInt(command.lockupMinutes),
         command.tokenName,
         command.tokenSymbol,
       );

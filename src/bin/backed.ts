@@ -8,7 +8,15 @@ import { runNetwork } from "../commands/network.ts";
 import { runSale } from "../commands/sale.ts";
 import { resolveRuntimeConfig } from "../config/runtime.ts";
 
-loadEnvFile();
+try {
+  loadEnvFile();
+} catch (error) {
+  const missingEnv =
+    error instanceof Error &&
+    "code" in error &&
+    (error as NodeJS.ErrnoException).code === "ENOENT";
+  if (!missingEnv) throw error;
+}
 
 async function main(): Promise<void> {
   const parsed = parseCli(process.argv.slice(2));

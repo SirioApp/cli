@@ -160,6 +160,30 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
       return { kind: "agent-projects", agentId: parseIntArg(expectPositional(cursor, "agent-id"), "agent-id") };
     case "create": {
       const options = parseNamedOptions(cursor);
+      const durationSeconds = readIntOption(options, "--duration-seconds");
+      const durationMinutes = readIntOption(options, "--duration-minutes");
+      if (durationSeconds === undefined && durationMinutes === undefined) {
+        throw new CliUserError(
+          "missing value for --duration-seconds or --duration-minutes",
+          true,
+        );
+      }
+      if (durationSeconds !== undefined && durationMinutes !== undefined) {
+        throw new CliUserError(
+          "use either --duration-seconds or --duration-minutes, not both",
+          true,
+        );
+      }
+
+      const launchInSeconds = readIntOption(options, "--launch-in-seconds");
+      const launchInMinutes = readIntOption(options, "--launch-in-minutes");
+      if (launchInSeconds !== undefined && launchInMinutes !== undefined) {
+        throw new CliUserError(
+          "use either --launch-in-seconds or --launch-in-minutes, not both",
+          true,
+        );
+      }
+
       return {
         kind: "create",
         agentId: readRequiredIntOption(options, "--agent-id"),
@@ -168,13 +192,10 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
         categories: readOptionalOption(options, "--categories", ""),
         tokenName: readRequiredOption(options, "--token-name"),
         tokenSymbol: readRequiredOption(options, "--token-symbol"),
-        durationMinutes: readRequiredIntOption(options, "--duration-minutes"),
-        lockupMinutes: readIntOption(
-          options,
-          "--lockup-minutes",
-          readIntOption(options, "--redeem-delay-minutes", 0),
-        ),
-        launchInMinutes: readIntOption(options, "--launch-in-minutes", 0),
+        durationSeconds,
+        durationMinutes,
+        launchInSeconds,
+        launchInMinutes,
         agentAddress: readOptionalOption(options, "--agent-address"),
         collateral: readOptionalOption(options, "--collateral"),
       };

@@ -37,6 +37,13 @@ export function minutesToSeconds(minutes: number, label: string): bigint {
   return BigInt(minutes * 60);
 }
 
+export function intToSeconds(value: number, label: string): bigint {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new CliUserError(`invalid integer for ${label}: ${value}`);
+  }
+  return BigInt(value);
+}
+
 export function unixNow(): number {
   return Math.floor(Date.now() / 1000);
 }

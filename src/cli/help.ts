@@ -30,7 +30,7 @@ Factory:
   backed factory snapshot <id>
   backed factory commitment <project-id> <user>
   backed factory agent-projects <agent-id>
-  backed factory create --agent-id <id> --name <name> --description <text> --token-name <name> --token-symbol <symbol> --duration-minutes <n> [--lockup-minutes <n>] [--launch-in-minutes <n>] [--categories <csv>] [--agent-address <address>] [--collateral <address>]
+  backed factory create --agent-id <id> --name <name> --description <text> --token-name <name> --token-symbol <symbol> (--duration-seconds <n> | --duration-minutes <n>) [--launch-in-seconds <n> | --launch-in-minutes <n>] [--categories <csv>] [--agent-address <address>] [--collateral <address>]
   backed factory approve <project-id>
   backed factory revoke <project-id>
   backed factory update-metadata --project-id <id> --description <text> [--categories <csv>]
