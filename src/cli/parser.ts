@@ -67,8 +67,9 @@ class Cursor {
 }
 
 function parseGlobalOptions(cursor: Cursor): GlobalOptions {
+  const envNetwork = process.env.BACKED_NETWORK;
   const global: GlobalOptions = {
-    network: "testnet",
+    network: envNetwork === "mainnet" ? "mainnet" : "testnet",
     help: false,
   };
 
@@ -89,7 +90,7 @@ function parseGlobalOptions(cursor: Cursor): GlobalOptions {
 
     switch (flag) {
       case "--network":
-        global.network = expectOneOf(cursor, ["testnet", "mainnet"], "--network");
+        global.network = expectOneOf(cursor, ["testnet", "mainnet"] as const, "--network");
         break;
       case "--rpc-url":
         global.rpcUrl = expectValue(cursor, "--rpc-url");
@@ -177,6 +178,9 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
 
       const launchInSeconds = readIntOption(options, "--launch-in-seconds");
       const launchInMinutes = readIntOption(options, "--launch-in-minutes");
+      const lockupMinutes = readIntOption(options, "--lockup-minutes");
+      const agentAddress = readOptionalOption(options, "--agent-address");
+      const collateral = readOptionalOption(options, "--collateral");
       if (launchInSeconds !== undefined && launchInMinutes !== undefined) {
         throw new CliUserError(
           "use either --launch-in-seconds or --launch-in-minutes, not both",
@@ -192,12 +196,13 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
         categories: readOptionalOption(options, "--categories", ""),
         tokenName: readRequiredOption(options, "--token-name"),
         tokenSymbol: readRequiredOption(options, "--token-symbol"),
-        durationSeconds,
-        durationMinutes,
-        launchInSeconds,
-        launchInMinutes,
-        agentAddress: readOptionalOption(options, "--agent-address"),
-        collateral: readOptionalOption(options, "--collateral"),
+        ...(durationSeconds !== undefined ? { durationSeconds } : {}),
+        ...(durationMinutes !== undefined ? { durationMinutes } : {}),
+        ...(lockupMinutes !== undefined ? { lockupMinutes } : {}),
+        ...(launchInSeconds !== undefined ? { launchInSeconds } : {}),
+        ...(launchInMinutes !== undefined ? { launchInMinutes } : {}),
+        ...(agentAddress !== undefined ? { agentAddress } : {}),
+        ...(collateral !== undefined ? { collateral } : {}),
       };
     }
     case "approve":
@@ -236,12 +241,21 @@ function parseFactoryCommand(cursor: Cursor): FactoryCommand {
       };
     case "set-global": {
       const options = parseNamedOptions(cursor);
+      const minDurationSeconds = readIntOption(options, "--min-duration-seconds");
+      const maxDurationSeconds = readIntOption(options, "--max-duration-seconds");
+      const minLaunchDelaySeconds = readIntOption(options, "--min-launch-delay-seconds");
+      const maxLaunchDelaySeconds = readIntOption(options, "--max-launch-delay-seconds");
+
       return {
         kind: "set-global",
         minRaise: readRequiredOption(options, "--min-raise"),
         maxRaise: readRequiredOption(options, "--max-raise"),
         platformFeeBps: readRequiredIntOption(options, "--platform-fee-bps"),
         platformFeeRecipient: readRequiredOption(options, "--platform-fee-recipient"),
+        ...(minDurationSeconds !== undefined ? { minDurationSeconds } : {}),
+        ...(maxDurationSeconds !== undefined ? { maxDurationSeconds } : {}),
+        ...(minLaunchDelaySeconds !== undefined ? { minLaunchDelaySeconds } : {}),
+        ...(maxLaunchDelaySeconds !== undefined ? { maxLaunchDelaySeconds } : {}),
       };
     }
     default:
@@ -368,6 +382,8 @@ function readRequiredOption(options: Map<string, string>, flag: string): string 
   return value;
 }
 
+function readOptionalOption(options: Map<string, string>, flag: string): string | undefined;
+function readOptionalOption(options: Map<string, string>, flag: string, fallback: string): string;
 function readOptionalOption(
   options: Map<string, string>,
   flag: string,
@@ -380,9 +396,12 @@ function readRequiredIntOption(options: Map<string, string>, flag: string): numb
   return parseIntArg(readRequiredOption(options, flag), flag);
 }
 
-function readIntOption(options: Map<string, string>, flag: string, fallback: number): number {
+function readIntOption(options: Map<string, string>, flag: string): number | undefined;
+function readIntOption(options: Map<string, string>, flag: string, fallback: number): number;
+function readIntOption(options: Map<string, string>, flag: string, fallback?: number): number | undefined {
   const value = options.get(flag);
-  return value === undefined ? fallback : parseIntArg(value, flag);
+  if (value === undefined) return fallback;
+  return parseIntArg(value, flag);
 }
 
 function readRequiredOneOfOption<T extends string>(
@@ -409,7 +428,7 @@ function expectValue(cursor: Cursor, flag: string): string {
   return value;
 }
 
-function expectOneOf(cursor: Cursor, values: readonly string[], flag: string): string {
+function expectOneOf<T extends string>(cursor: Cursor, values: readonly T[], flag: string): T {
   return expectOneOfValue(expectValue(cursor, flag), values, flag);
 }
 

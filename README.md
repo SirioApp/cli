@@ -2,7 +2,7 @@
 
 `backed-cli` is the command-line interface for the Backed protocol contracts defined in `backend`.
 
-It resolves configuration from `backend/deployments`, exposes the current protocol operations, and is intended to be used as a shell command named `backed`.
+It resolves configuration from the active frontend deployment manifests, exposes the current protocol operations, and is intended to be used as a shell command named `backed`.
 
 ## Overview
 
@@ -51,8 +51,29 @@ backed network
 
 By default, the CLI reads deployment data from:
 
+- `frontend/config/deployment.testnet.json`
+- `frontend/config/deployment.mainnet.json`
+
+Backend mirrors are also kept in:
+
 - `backend/deployments/megaeth-testnet.json`
 - `backend/deployments/megaeth-mainnet.json`
+
+## Current Official Deployments
+
+### Testnet
+
+- `SafeModuleSetup`: `0x7b6EbB0ede8ac0224a176663e6c07Dece0a37010`
+- `ContractAllowlist`: `0x54459A9431bD98c754180DEB32B067Cf31bDfF33`
+- `AgentRaiseFactory`: `0x577be362178d20A3370722807d0294fA5D8A5a2A`
+- `USDM`: `0x9f5A17BD53310D012544966b8e3cF7863fc8F05f`
+
+### Mainnet
+
+- `SafeModuleSetup`: `0x54459A9431bD98c754180DEB32B067Cf31bDfF33`
+- `ContractAllowlist`: `0x577be362178d20A3370722807d0294fA5D8A5a2A`
+- `AgentRaiseFactory`: `0x45179eE92887e5770E42CD239644bc7b662673af`
+- `USDM`: `0xFAfDdbb3FC7688494971a79cc65DCa3EF82079E7`
 
 ### Global flags
 
@@ -332,7 +353,11 @@ backed factory set-global \
   --min-raise 100 \
   --max-raise 100000 \
   --platform-fee-bps 100 \
-  --platform-fee-recipient 0x1111111111111111111111111111111111111111
+  --platform-fee-recipient 0x1111111111111111111111111111111111111111 \
+  --min-duration-seconds 3600 \
+  --max-duration-seconds 2592000 \
+  --min-launch-delay-seconds 0 \
+  --max-launch-delay-seconds 604800
 ```
 
 ## `sale`
@@ -489,11 +514,12 @@ Override the relevant values:
 
 ### A read call reverts
 
-The deployment JSON is usually out of sync with the active contracts.
+The deployment manifest is usually out of sync with the active contracts.
 
 Recommended action:
 
-- update `backend/deployments/*.json`
+- update `frontend/config/deployment.*.json`
+- mirror the same values into `backend/deployments/*.json`
 - or pass explicit addresses through CLI flags
 
 ### RPC issues

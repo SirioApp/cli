@@ -143,10 +143,14 @@ export async function runFactory(
         command.durationSeconds !== undefined
           ? intToSeconds(command.durationSeconds, "duration-seconds")
           : minutesToSeconds(command.durationMinutes ?? 0, "duration-minutes");
+      const lockupMinutes = BigInt(command.lockupMinutes ?? 0);
       const launchTimestamp =
         unixNow() +
         Number(launchDelaySeconds);
-      const transaction = writeFactory.createAgentRaise(
+      const transaction =
+        writeFactory[
+          "createAgentRaise(uint256,string,string,string,address,address,uint256,uint256,uint256,string,string)"
+        ](
         BigInt(command.agentId),
         command.name,
         command.description,
@@ -155,6 +159,7 @@ export async function runFactory(
         collateral,
         durationSeconds,
         BigInt(launchTimestamp),
+        lockupMinutes,
         command.tokenName,
         command.tokenSymbol,
       );
@@ -186,11 +191,15 @@ export async function runFactory(
     }
     case "set-status": {
       const writeFactory = createFactoryContract(config.factory, createWriteClient(global, config));
+      const statusCode = STATUS_CODES[command.status];
+      if (statusCode === undefined) {
+        throw new Error(`unsupported status: ${command.status}`);
+      }
       printReceipt(
         await sendAndWait(
           writeFactory.updateProjectOperationalStatus(
             BigInt(command.projectId),
-            STATUS_CODES[command.status],
+            statusCode,
             command.statusNote,
           ),
         ),
@@ -228,10 +237,10 @@ export async function runFactory(
             parseAmountUnits(command.maxRaise, 18),
             command.platformFeeBps,
             normalizeAddress(command.platformFeeRecipient, "platform-fee-recipient"),
-            current[4],
-            current[5],
-            current[6],
-            current[7],
+            BigInt(command.minDurationSeconds ?? Number(current[4])),
+            BigInt(command.maxDurationSeconds ?? Number(current[5])),
+            BigInt(command.minLaunchDelaySeconds ?? Number(current[6])),
+            BigInt(command.maxLaunchDelaySeconds ?? Number(current[7])),
           ]),
         ),
       );

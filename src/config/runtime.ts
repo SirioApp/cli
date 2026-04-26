@@ -23,14 +23,22 @@ export type RuntimeConfig = {
   defaultCollateral?: string;
   deploymentPath: string;
   repoRoot: string;
+  contracts: Record<string, string>;
+  external: Record<string, string>;
 };
 
 export function resolveRuntimeConfig(global: GlobalOptions): RuntimeConfig {
   const repoRoot = findRepoRoot(cwd());
-  const deploymentPath = join(repoRoot, "backend", "deployments", deploymentFileName(global.network));
+  const deploymentPath = join(repoRoot, "frontend", "config", deploymentFileName(global.network));
   const deployment = readJson<DeploymentFile>(deploymentPath);
-  const factory = normalizeAddress(global.factory ?? deployment.contracts.AgentRaiseFactory, "AgentRaiseFactory");
-  const allowlist = normalizeAddress(global.allowlist ?? deployment.contracts.ContractAllowlist, "ContractAllowlist");
+  const factory = normalizeAddress(
+    global.factory ?? process.env.BACKED_FACTORY ?? deployment.contracts.AgentRaiseFactory,
+    "AgentRaiseFactory",
+  );
+  const allowlist = normalizeAddress(
+    global.allowlist ?? process.env.BACKED_ALLOWLIST ?? deployment.contracts.ContractAllowlist,
+    "ContractAllowlist",
+  );
   const defaultCollateral = deployment.external?.USDM
     ? normalizeAddress(deployment.external.USDM, "USDM")
     : undefined;
@@ -39,30 +47,32 @@ export function resolveRuntimeConfig(global: GlobalOptions): RuntimeConfig {
     network: global.network,
     networkLabel: deployment.network,
     chainId: deployment.chainId,
-    rpcUrl: global.rpcUrl ?? deployment.rpc,
+    rpcUrl: global.rpcUrl ?? process.env.BACKED_RPC_URL ?? deployment.rpc,
     factory,
     allowlist,
-    defaultCollateral,
     deploymentPath,
     repoRoot,
+    contracts: deployment.contracts,
+    external: deployment.external ?? {},
+    ...(defaultCollateral ? { defaultCollateral } : {}),
   };
 }
 
 function deploymentFileName(network: NetworkName): string {
-  return network === "testnet" ? "megaeth-testnet.json" : "megaeth-mainnet.json";
+  return network === "testnet" ? "deployment.testnet.json" : "deployment.mainnet.json";
 }
 
 function findRepoRoot(startPath: string): string {
   let current = startPath;
   while (true) {
     try {
-      readFileSync(join(current, "backend", "deployments", "megaeth-testnet.json"));
+      readFileSync(join(current, "frontend", "config", "deployment.testnet.json"));
       return current;
     } catch {}
 
     const parent = dirname(current);
     if (parent === current) {
-      throw new CliUserError("cannot locate repo root containing backend/deployments");
+      throw new CliUserError("cannot locate repo root containing frontend/config deployment files");
     }
     current = parent;
   }

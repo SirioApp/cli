@@ -12,6 +12,12 @@ export function printNetwork(config: RuntimeConfig): void {
   console.log(`allowlist: ${config.allowlist}`);
   console.log(`default_collateral: ${config.defaultCollateral ?? "<none>"}`);
   console.log(`deployment_file: ${config.deploymentPath}`);
+  for (const [name, address] of Object.entries(config.contracts)) {
+    console.log(`contract_${name}: ${address}`);
+  }
+  for (const [name, address] of Object.entries(config.external)) {
+    console.log(`external_${name}: ${address}`);
+  }
 }
 
 export function printReceipt(receipt: TransactionReceipt): void {
@@ -64,5 +70,7 @@ export function printGlobalConfig(config: {
   console.log(`  max_duration_seconds: ${config.maxDuration}`);
   console.log(`  min_launch_delay_seconds: ${config.minLaunchDelay}`);
   console.log(`  max_launch_delay_seconds: ${config.maxLaunchDelay}`);
-  console.log(`  time_limits_enforced: false`);
+  console.log(
+    `  time_limits_enforced: ${config.minDuration > 0n || config.maxDuration > 0n || config.minLaunchDelay > 0n || config.maxLaunchDelay > 0n}`,
+  );
 }

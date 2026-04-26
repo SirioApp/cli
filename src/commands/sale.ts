@@ -1,4 +1,4 @@
-import { type Contract, type ContractRunner, type ContractTransactionResponse } from "ethers";
+import { type ContractRunner, type ContractTransactionResponse } from "ethers";
 import type { GlobalOptions, SaleCommand, SaleTarget } from "../cli/types.ts";
 import type { RuntimeConfig } from "../config/runtime.ts";
 import {
@@ -10,6 +10,7 @@ import {
   createWriteClient,
   ensureSaleTarget,
   normalizeAddress,
+  type SaleContract,
 } from "../chain/client.ts";
 import {
   readFactoryProject,
@@ -240,7 +241,7 @@ async function runSaleTransaction(
   global: GlobalOptions,
   config: RuntimeConfig,
   target: SaleTarget,
-  build: (sale: Contract) => Promise<ContractTransactionResponse>,
+  build: (sale: SaleContract) => Promise<ContractTransactionResponse>,
 ): Promise<void> {
   const writeClient = createWriteClient(global, config);
   const saleAddress = await resolveSaleAddress(config, writeClient, target);

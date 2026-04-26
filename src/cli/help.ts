@@ -30,13 +30,13 @@ Factory:
   backed factory snapshot <id>
   backed factory commitment <project-id> <user>
   backed factory agent-projects <agent-id>
-  backed factory create --agent-id <id> --name <name> --description <text> --token-name <name> --token-symbol <symbol> (--duration-seconds <n> | --duration-minutes <n>) [--launch-in-seconds <n> | --launch-in-minutes <n>] [--categories <csv>] [--agent-address <address>] [--collateral <address>]
+  backed factory create --agent-id <id> --name <name> --description <text> --token-name <name> --token-symbol <symbol> (--duration-seconds <n> | --duration-minutes <n>) [--lockup-minutes <n>] [--launch-in-seconds <n> | --launch-in-minutes <n>] [--categories <csv>] [--agent-address <address>] [--collateral <address>]
   backed factory approve <project-id>
   backed factory revoke <project-id>
   backed factory update-metadata --project-id <id> --description <text> [--categories <csv>]
   backed factory set-status --project-id <id> --status <raising|deploying|operating|paused|closed> [--status-note <text>]
   backed factory set-collateral <address> <true|false>
-  backed factory set-global --min-raise <amount> --max-raise <amount> --platform-fee-bps <bps> --platform-fee-recipient <address>
+  backed factory set-global --min-raise <amount> --max-raise <amount> --platform-fee-bps <bps> --platform-fee-recipient <address> [--min-duration-seconds <n>] [--max-duration-seconds <n>] [--min-launch-delay-seconds <n>] [--max-launch-delay-seconds <n>]
 
 Sale:
   backed sale status (--sale <address> | --project-id <id>)

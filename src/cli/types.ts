@@ -33,6 +33,7 @@ export type FactoryCommand =
       tokenSymbol: string;
       durationSeconds?: number;
       durationMinutes?: number;
+      lockupMinutes?: number;
       launchInSeconds?: number;
       launchInMinutes?: number;
       agentAddress?: string;
@@ -54,6 +55,10 @@ export type FactoryCommand =
       maxRaise: string;
       platformFeeBps: number;
       platformFeeRecipient: string;
+      minDurationSeconds?: number;
+      maxDurationSeconds?: number;
+      minLaunchDelaySeconds?: number;
+      maxLaunchDelaySeconds?: number;
     };
 
 export type SaleCommand =
